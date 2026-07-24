@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #1a1a2e;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+      .card {
+        background: #16213e;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        width: 420px;
+        text-align: center;
+      }
+      h1 {
+        color: #4ecca3;
+        margin-bottom: 12px;
+        font-size: 26px;
+      }
+      p {
+        color: #a8a8b3;
+        font-size: 16px;
+        margin-bottom: 20px;
+      }
+      .user-info {
+        background: #0f3460;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+        color: #fff;
+        font-size: 14px;
+        text-align: left;
+        word-break: break-all;
+      }
+      .user-info strong {
+        color: #e94560;
+      }
+      button {
+        padding: 10px 24px;
+        background: #e94560;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        cursor: pointer;
+        margin: 4px;
+      }
+      button:hover {
+        background: #c73650;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Dashboard</h1>
+      <p id="welcome">Loading...</p>
+      <div class="user-info" id="userInfo"></div>
+      <button onclick="window.location.href = '/login.html'">Logout</button>
+    </div>
+    <script>
+      (async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          window.location.href = "/login.html";
+          return;
+        }
+        try {
+          const res = await fetch("/dashboard", {
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (res.ok) {
+            document.getElementById("welcome").textContent = data.message;
+            document.getElementById("userInfo").innerHTML =
+              "<strong>User:</strong> " +
+              data.loggedInUser.username +
+              "<br><strong>ID:</strong> " +
+              data.loggedInUser.id;
+          } else {
+            localStorage.removeItem("token");
+            window.location.href = "/login.html";
+          }
+        } catch (err) {
+          window.location.href = "/login.html";
+        }
+      })();
+    </script>
+  </body>
+</html>

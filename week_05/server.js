@@ -1,15 +1,17 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
-
-const users = require("./data/users");
+const db = require("./Data/database");
 const verifyToken = require("./middleware/auth");
+
+const path = require("path");
 
 const app = express();
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
-    res.send("Server is running...");
+    res.redirect("/login.html");
 });
 
 // LOGIN
@@ -17,18 +19,15 @@ app.post("/login", (req, res) => {
 
     const { username, password } = req.body;
 
-    // Body Guard
     if (!username || !password) {
         return res.status(400).json({
             message: "Username and password are required."
         });
     }
 
-    const user = users.find(
-        user =>
-            user.username === username &&
-            user.password === password
-    );
+    const user = db.prepare(
+        "SELECT * FROM users WHERE username = ? AND password = ?"
+    ).get(username, password);
 
     if (!user) {
         return res.status(401).json({
@@ -49,6 +48,50 @@ app.post("/login", (req, res) => {
 
     res.json({
         message: "Login Successful",
+        token: token
+    });
+
+});
+
+// REGISTER
+app.post("/register", (req, res) => {
+
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({
+            message: "Username and password are required."
+        });
+    }
+
+    const existing = db.prepare(
+        "SELECT * FROM users WHERE username = ?"
+    ).get(username);
+
+    if (existing) {
+        return res.status(409).json({
+            message: "Username already exists."
+        });
+    }
+
+    const result = db.prepare(
+        "INSERT INTO users (username, password) VALUES (?, ?)"
+    ).run(username, password);
+
+    const token = jwt.sign(
+        {
+            id: result.lastInsertRowid,
+            username: username
+        },
+        "secretKey",
+        {
+            expiresIn: "1h"
+        }
+    );
+
+    res.status(201).json({
+        message: "User registered successfully",
+        id: result.lastInsertRowid,
         token: token
     });
 

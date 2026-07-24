@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #1a1a2e;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+      .card {
+        background: #16213e;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        width: 380px;
+      }
+      h1 {
+        color: #4ecca3;
+        text-align: center;
+        margin-bottom: 24px;
+        font-size: 24px;
+      }
+      label {
+        color: #a8a8b3;
+        font-size: 14px;
+        display: block;
+        margin-bottom: 6px;
+      }
+      input {
+        width: 100%;
+        padding: 12px 16px;
+        margin-bottom: 18px;
+        border: 1px solid #333;
+        border-radius: 8px;
+        background: #0f3460;
+        color: #fff;
+        font-size: 15px;
+        outline: none;
+      }
+      input:focus {
+        border-color: #4ecca3;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        background: #4ecca3;
+        color: #1a1a2e;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #3db88a;
+      }
+      .msg {
+        text-align: center;
+        margin-top: 14px;
+        font-size: 14px;
+        min-height: 20px;
+      }
+      .msg.success {
+        color: #4ecca3;
+      }
+      .msg.error {
+        color: #e94560;
+      }
+      .links {
+        text-align: center;
+        margin-top: 16px;
+      }
+      .links a {
+        color: #a8a8b3;
+        font-size: 14px;
+        text-decoration: none;
+      }
+      .links a:hover {
+        color: #4ecca3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Register</h1>
+      <form id="regForm">
+        <label>Username</label>
+        <input
+          type="text"
+          id="username"
+          placeholder="Choose a username"
+          required
+        />
+        <label>Password</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="Choose a password"
+          required
+        />
+        <button type="submit">Register</button>
+      </form>
+      <div class="msg" id="msg"></div>
+      <div class="links">
+        <a href="/login.html">Already have an account? Login</a>
+      </div>
+    </div>
+    <script>
+      document
+        .getElementById("regForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const msg = document.getElementById("msg");
+          msg.className = "msg";
+          msg.textContent = "";
+          try {
+            const res = await fetch("/register", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                username: document.getElementById("username").value,
+                password: document.getElementById("password").value,
+              }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+              msg.className = "msg success";
+              msg.textContent = data.message + " Redirecting to dashboard...";
+              localStorage.setItem("token", data.token);
+              setTimeout(() => {
+                window.location.href = "/dashboard.html";
+              }, 1000);
+            } else {
+              msg.className = "msg error";
+              msg.textContent = data.message;
+            }
+          } catch (err) {
+            msg.className = "msg error";
+            msg.textContent = "Server error. Try again.";
+          }
+        });
+    </script>
+  </body>
+</html>
